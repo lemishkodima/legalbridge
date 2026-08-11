@@ -290,8 +290,11 @@
 
     <div class="cases-grid">
       <div class="case-card">
-        <div class="case-photo media-frame">
-          <video src="/src/assets/video/case-tck.mp4" poster="/src/assets/images/case-tck-poster.jpg" muted loop playsinline preload="metadata" controls aria-label="Відеовідгук про звільнення з ТЦК"></video>
+        <div class="case-photo media-frame video-player" data-video-player>
+          <video src="/src/assets/video/case-tck.mp4" poster="/src/assets/images/case-tck-poster.jpg" muted loop playsinline preload="metadata">Ваш браузер не підтримує відтворення відео.</video>
+          <button class="video-control" type="button" data-video-toggle aria-label="Відтворити відео">
+            <span class="video-control-icon" aria-hidden="true"></span>
+          </button>
         </div>
         <div class="case-body">
           <div class="case-tag">ТЦК</div>
