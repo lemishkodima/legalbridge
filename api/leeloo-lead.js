@@ -1,0 +1,177 @@
+const LEELOO_API_BASE_URL = 'https://api.leeloo.ai/api/v2';
+const REQUEST_TIMEOUT_MS = 10_000;
+
+function sendJson(response, statusCode, payload) {
+  response.setHeader('Cache-Control', 'no-store');
+  return response.status(statusCode).json(payload);
+}
+
+function normalizePhone(value) {
+  const raw = String(value || '').trim();
+  const digits = raw.replace(/\D/g, '');
+
+  if (digits.startsWith('380') && digits.length === 12) return `+${digits}`;
+  if (digits.startsWith('0') && digits.length === 10) return `+38${digits}`;
+  if (raw.startsWith('+') && digits.length >= 10 && digits.length <= 15) return `+${digits}`;
+
+  return '';
+}
+
+function validateLead(body) {
+  const name = String(body?.name || '').trim().replace(/\s+/g, ' ');
+  const phone = normalizePhone(body?.phone);
+  const problem = String(body?.problem || '').trim().replace(/\r\n/g, '\n');
+
+  if (name.length < 2 || name.length > 100) {
+    return { error: 'Вкажіть коректне імʼя.' };
+  }
+
+  if (!phone) {
+    return { error: 'Вкажіть коректний номер телефону.' };
+  }
+
+  if (problem.length < 5 || problem.length > 1_500) {
+    return { error: 'Коротко опишіть проблему — від 5 до 1500 символів.' };
+  }
+
+  return { lead: { name, phone, problem } };
+}
+
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function leelooRequest(path, { token, method = 'GET', body }) {
+  const response = await fetchWithTimeout(`${LEELOO_API_BASE_URL}${path}`, {
+    method,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Leeloo-AuthToken': token
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  let payload = {};
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = {};
+  }
+
+  return { ok: response.ok && payload.status !== 0, status: response.status, payload };
+}
+
+function getPersonId(payload) {
+  return payload?.data?.id || payload?.data?.person?.id || payload?.person?.id || '';
+}
+
+async function findPersonByPhone(token, phone) {
+  const params = new URLSearchParams({
+    limit: '20',
+    offset: '0',
+    'filter[phone]': phone
+  });
+  const result = await leelooRequest(`/people?${params}`, { token });
+
+  if (!result.ok || !Array.isArray(result.payload?.data)) return '';
+
+  return result.payload.data.find(person => normalizePhone(person.phone) === phone)?.id || '';
+}
+
+async function createOrFindPerson({ token, leadgentoolId, lead }) {
+  const personBody = {
+    name: lead.name,
+    phone: lead.phone,
+    ...(leadgentoolId ? { leadgentool_id: leadgentoolId } : {})
+  };
+  const creation = await leelooRequest('/people', {
+    token,
+    method: 'POST',
+    body: personBody
+  });
+  const createdPersonId = getPersonId(creation.payload);
+
+  if (creation.ok && createdPersonId) return createdPersonId;
+
+  const existingPersonId = await findPersonByPhone(token, lead.phone);
+
+  if (existingPersonId) return existingPersonId;
+
+  throw new Error('person_creation_failed');
+}
+
+async function addProblemComment({ token, personId, problem }) {
+  const comment = [
+    'Заявка з сайту Legal Bridge Service',
+    '',
+    'Короткий опис проблеми:',
+    problem
+  ].join('\n');
+  const request = () => leelooRequest(`/people/${encodeURIComponent(personId)}/add-comment`, {
+    token,
+    method: 'PUT',
+    body: { comment }
+  });
+
+  let result = await request();
+
+  if (!result.ok) result = await request();
+  if (!result.ok) throw new Error('comment_creation_failed');
+}
+
+export default async function handler(request, response) {
+  if (request.method !== 'POST') {
+    response.setHeader('Allow', 'POST');
+    return sendJson(response, 405, { ok: false, message: 'Метод не підтримується.' });
+  }
+
+  if (request.body?.website) {
+    return sendJson(response, 200, { ok: true });
+  }
+
+  const validation = validateLead(request.body);
+
+  if (validation.error) {
+    return sendJson(response, 422, { ok: false, message: validation.error });
+  }
+
+  const token = process.env.LEELOO_API_TOKEN?.trim();
+  const leadgentoolId = process.env.LEELOO_LEADGENTOOL_ID?.trim();
+
+  if (!token) {
+    return sendJson(response, 500, {
+      ok: false,
+      message: 'Інтеграція тимчасово не налаштована.'
+    });
+  }
+
+  try {
+    const personId = await createOrFindPerson({
+      token,
+      leadgentoolId,
+      lead: validation.lead
+    });
+
+    await addProblemComment({
+      token,
+      personId,
+      problem: validation.lead.problem
+    });
+
+    return sendJson(response, 201, { ok: true });
+  } catch {
+    return sendJson(response, 502, {
+      ok: false,
+      message: 'Не вдалося передати заявку. Спробуйте ще раз або зателефонуйте нам.'
+    });
+  }
+}

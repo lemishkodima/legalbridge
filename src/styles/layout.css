@@ -1,0 +1,89 @@
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(8, 24, 45, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-inner {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 0;
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo img {
+  display: block;
+  width: 188px;
+  height: 58px;
+  object-fit: contain;
+}
+.nav-cta {
+  display: flex; align-items: center; gap: 20px;
+}
+.nav-phone {
+  color: var(--text); text-decoration: none;
+  font-weight: 700; font-size: 15px;
+}
+.nav-btn {
+  background: var(--yellow); color: var(--bg);
+  padding: 12px 22px;
+  font-weight: 700; font-size: 14px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, transform 0.15s;
+  border: none; cursor: pointer;
+  font-family: inherit;
+}
+.nav-btn:hover { background: #E1BE6C; transform: translateY(-1px); }
+
+/* FOOTER */
+footer {
+  padding: 60px 0 32px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.foot-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 60px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.foot-brand p {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-top: 20px;
+  max-width: 320px;
+}
+.foot-col h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+}
+.foot-col a, .foot-col p {
+  display: block;
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 2;
+  transition: color 0.15s;
+  overflow-wrap: anywhere;
+}
+.foot-col a:hover { color: var(--yellow); }
+.foot-bottom {
+  display: flex; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+  font-size: 12px; color: var(--text-3);
+  letter-spacing: 0.03em;
+}

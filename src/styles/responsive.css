@@ -1,0 +1,39 @@
+/* MOBILE */
+@media (max-width: 900px) {
+  .wrap { padding: 0 20px; }
+  .hero { padding: 50px 0 70px; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 24px; padding-top: 36px; }
+  .stat-val { font-size: 32px; }
+  .sit-grid, .why-grid { grid-template-columns: 1fr; gap: 16px; }
+  .why { padding: 80px 0; }
+  .situations, .expert, .process, .faq-section, .form-section { padding: 80px 0; }
+  .expert-grid { grid-template-columns: 1fr; gap: 40px; }
+  .expert-photo { max-width: 300px; margin: 0 auto; }
+  .steps { grid-template-columns: repeat(2, 1fr); gap: 32px 16px; }
+  .steps::before { display: none; }
+  .form-grid { grid-template-columns: 1fr; gap: 48px; }
+  form.lead-form { padding: 28px 24px; }
+  .foot-grid { grid-template-columns: 1fr; gap: 32px; }
+  .nav-inner { padding: 14px 0; }
+  .nav-phone { display: none; }
+  .nav-btn { padding: 10px 16px; font-size: 13px; }
+  .gb-inner { flex-direction: column; align-items: flex-start; gap: 24px; }
+}
+
+@media (max-width: 480px) {
+  .hero-cta { flex-direction: column; align-items: stretch; }
+  .btn-primary, .btn-ghost { justify-content: center; text-align: center; }
+  .logo img { width: 150px; height: 48px; }
+}
+
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero-photo { max-height: 480px; }
+  .cases-grid { grid-template-columns: 1fr; gap: 16px; }
+  .cases { padding: 80px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
