@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import { resolve } from 'node:path';
 
 import leelooLeadHandler from './api/leeloo-lead.js';
 
@@ -74,6 +75,14 @@ export default defineConfig(({ mode }) => {
   process.env.LEELOO_TUNNEL_BLOCK_ID = env.LEELOO_TUNNEL_BLOCK_ID;
 
   return {
-    plugins: [leelooApiDevPlugin()]
+    plugins: [leelooApiDevPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          main: resolve(process.cwd(), 'index.html'),
+          thankYou: resolve(process.cwd(), 'thank-you/index.html')
+        }
+      }
+    }
   };
 });

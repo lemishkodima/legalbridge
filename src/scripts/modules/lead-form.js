@@ -47,11 +47,7 @@ export function initLeadForm() {
       }
 
       form.reset();
-      setStatus(
-        status,
-        'Дякуємо! Заявку передано менеджеру. Ми зв’яжемося з вами найближчим часом.',
-        'success'
-      );
+      window.location.assign('/thank-you/');
     } catch (error) {
       const message = error.name === 'AbortError'
         ? 'Сервер відповідає надто довго. Спробуйте ще раз.'
