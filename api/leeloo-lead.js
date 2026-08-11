@@ -80,7 +80,18 @@ function getCreatedPersonId(payload) {
     || '';
 }
 
-async function findPersonByPhone(token, phone) {
+async function getConnectedUserIds(token, personId) {
+  const result = await leelooRequest(
+    `/people/${encodeURIComponent(personId)}?include=contactedUsers`,
+    { token }
+  );
+
+  if (!result.ok) return [];
+
+  return (result.payload?.data?.links?.contactedUsers || []).map(user => user.id);
+}
+
+async function findPersonByPhone(token, phone, connectedUserId = '') {
   const params = new URLSearchParams({
     limit: '20',
     offset: '0',
@@ -90,18 +101,31 @@ async function findPersonByPhone(token, phone) {
 
   if (!result.ok || !Array.isArray(result.payload?.data)) return '';
 
-  return result.payload.data.find(person => normalizePhone(person.phone) === phone)?.id || '';
+  const matchingPeople = result.payload.data
+    .filter(person => normalizePhone(person.phone) === phone)
+    .slice(0, 10);
+
+  if (!connectedUserId) return matchingPeople[0]?.id || '';
+
+  for (const person of matchingPeople) {
+    const connectedUserIds = await getConnectedUserIds(token, person.id);
+
+    if (connectedUserIds.includes(connectedUserId)) return person.id;
+  }
+
+  return '';
 }
 
-async function createOrFindPerson({ token, leadgentoolId, lead }) {
-  const existingPersonId = await findPersonByPhone(token, lead.phone);
+async function createOrFindPerson({ token, leadgentoolId, connectedUserId, lead }) {
+  const existingPersonId = await findPersonByPhone(token, lead.phone, connectedUserId);
 
   if (existingPersonId) return existingPersonId;
 
   const personBody = {
     name: lead.name,
     phone: lead.phone,
-    ...(leadgentoolId ? { leadgentool_id: leadgentoolId } : {})
+    ...(leadgentoolId ? { leadgentool_id: leadgentoolId } : {}),
+    ...(connectedUserId ? { connected_users_ids: [connectedUserId] } : {})
   };
   const creation = await leelooRequest('/people', {
     token,
@@ -113,7 +137,11 @@ async function createOrFindPerson({ token, leadgentoolId, lead }) {
   if (creation.ok && createdPersonId) return createdPersonId;
 
   // A second lookup covers a concurrent request that created the person first.
-  const concurrentlyCreatedPersonId = await findPersonByPhone(token, lead.phone);
+  const concurrentlyCreatedPersonId = await findPersonByPhone(
+    token,
+    lead.phone,
+    connectedUserId
+  );
 
   if (concurrentlyCreatedPersonId) return concurrentlyCreatedPersonId;
 
@@ -163,6 +191,7 @@ export default async function handler(request, response) {
 
   const token = process.env.LEELOO_API_TOKEN?.trim();
   const leadgentoolId = process.env.LEELOO_LEADGENTOOL_ID?.trim();
+  const connectedUserId = process.env.LEELOO_CONNECTED_USER_ID?.trim();
 
   if (!token) {
     return sendJson(response, 500, {
@@ -175,6 +204,7 @@ export default async function handler(request, response) {
     const personId = await createOrFindPerson({
       token,
       leadgentoolId,
+      connectedUserId,
       lead: validation.lead
     });
 

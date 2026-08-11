@@ -70,6 +70,7 @@ export default defineConfig(({ mode }) => {
 
   process.env.LEELOO_API_TOKEN = env.LEELOO_API_TOKEN;
   process.env.LEELOO_LEADGENTOOL_ID = env.LEELOO_LEADGENTOOL_ID;
+  process.env.LEELOO_CONNECTED_USER_ID = env.LEELOO_CONNECTED_USER_ID;
 
   return {
     plugins: [leelooApiDevPlugin()]
