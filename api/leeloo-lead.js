@@ -70,28 +70,36 @@ async function leelooRequest(path, { token, method = 'GET', body }) {
   return { ok: response.ok && payload.status !== 0, status: response.status, payload };
 }
 
-function getCreatedPersonId(payload) {
+function getCreatedPersonIdentifiers(payload) {
   // Leeloo returns both identifiers when a MANUAL communication channel is
   // created: data.id is the channel ID and data.person_id is the CRM person ID.
-  return payload?.data?.person_id
+  const personId = payload?.data?.person_id
     || payload?.data?.person?.id
     || payload?.person?.id
     || payload?.data?.id
     || '';
+  const accountId = payload?.data?.account_id
+    || payload?.data?.account?.id
+    || (payload?.data?.person_id ? payload?.data?.id : '')
+    || '';
+
+  return { personId, accountId };
 }
 
-async function getConnectedUserIds(token, personId) {
-  const result = await leelooRequest(
-    `/people/${encodeURIComponent(personId)}?include=contactedUsers`,
-    { token }
-  );
+async function getPersonIdentifiers(token, personId) {
+  const result = await leelooRequest(`/people/${encodeURIComponent(personId)}`, { token });
 
-  if (!result.ok) return [];
+  if (!result.ok) return { personId, accountId: '' };
 
-  return (result.payload?.data?.links?.contactedUsers || []).map(user => user.id);
+  const accounts = Array.isArray(result.payload?.data?.accounts)
+    ? result.payload.data.accounts
+    : [];
+  const account = accounts.find(item => item.from === 'MANUAL') || accounts[0];
+
+  return { personId, accountId: account?.account_id || '' };
 }
 
-async function findPersonByPhone(token, phone, connectedUserId = '') {
+async function findPersonByPhone(token, phone) {
   const params = new URLSearchParams({
     limit: '20',
     offset: '0',
@@ -101,53 +109,64 @@ async function findPersonByPhone(token, phone, connectedUserId = '') {
 
   if (!result.ok || !Array.isArray(result.payload?.data)) return '';
 
-  const matchingPeople = result.payload.data
-    .filter(person => normalizePhone(person.phone) === phone)
-    .slice(0, 10);
-
-  if (!connectedUserId) return matchingPeople[0]?.id || '';
-
-  for (const person of matchingPeople) {
-    const connectedUserIds = await getConnectedUserIds(token, person.id);
-
-    if (connectedUserIds.includes(connectedUserId)) return person.id;
-  }
-
-  return '';
+  return result.payload.data.find(person => normalizePhone(person.phone) === phone)?.id || '';
 }
 
-async function createOrFindPerson({ token, leadgentoolId, connectedUserId, lead }) {
-  const existingPersonId = await findPersonByPhone(token, lead.phone, connectedUserId);
+async function createOrFindPerson({ token, leadgentoolId, lead }) {
+  const existingPersonId = await findPersonByPhone(token, lead.phone);
 
-  if (existingPersonId) return existingPersonId;
+  if (existingPersonId) return getPersonIdentifiers(token, existingPersonId);
 
   const personBody = {
     name: lead.name,
     phone: lead.phone,
-    ...(leadgentoolId ? { leadgentool_id: leadgentoolId } : {}),
-    ...(connectedUserId ? { connected_users_ids: [connectedUserId] } : {})
+    ...(leadgentoolId ? { leadgentool_id: leadgentoolId } : {})
   };
   const creation = await leelooRequest('/people', {
     token,
     method: 'POST',
     body: personBody
   });
-  const createdPersonId = getCreatedPersonId(creation.payload);
+  const createdPerson = getCreatedPersonIdentifiers(creation.payload);
 
-  if (creation.ok && createdPersonId) return createdPersonId;
+  if (creation.ok && createdPerson.personId) return createdPerson;
 
   // A second lookup covers a concurrent request that created the person first.
-  const concurrentlyCreatedPersonId = await findPersonByPhone(
-    token,
-    lead.phone,
-    connectedUserId
-  );
+  const concurrentlyCreatedPersonId = await findPersonByPhone(token, lead.phone);
 
-  if (concurrentlyCreatedPersonId) return concurrentlyCreatedPersonId;
+  if (concurrentlyCreatedPersonId) {
+    return getPersonIdentifiers(token, concurrentlyCreatedPersonId);
+  }
 
   const error = new Error('person_creation_failed');
   error.upstreamStatus = creation.status;
   throw error;
+}
+
+async function subscribeToTunnelBlock({ token, accountId, tunnelId, tunnelBlockId }) {
+  if (!tunnelId && !tunnelBlockId) return;
+
+  if (!tunnelId || !tunnelBlockId || !accountId) {
+    throw new Error('tunnel_subscription_not_configured');
+  }
+
+  const result = await leelooRequest(
+    `/communication-channels/${encodeURIComponent(accountId)}/manual-subscribe`,
+    {
+      token,
+      method: 'POST',
+      body: {
+        tunnel_id: tunnelId,
+        tunnel_block_id: tunnelBlockId
+      }
+    }
+  );
+
+  if (!result.ok) {
+    const error = new Error('tunnel_subscription_failed');
+    error.upstreamStatus = result.status;
+    throw error;
+  }
 }
 
 async function addProblemComment({ token, personId, problem }) {
@@ -191,7 +210,8 @@ export default async function handler(request, response) {
 
   const token = process.env.LEELOO_API_TOKEN?.trim();
   const leadgentoolId = process.env.LEELOO_LEADGENTOOL_ID?.trim();
-  const connectedUserId = process.env.LEELOO_CONNECTED_USER_ID?.trim();
+  const tunnelId = process.env.LEELOO_TUNNEL_ID?.trim();
+  const tunnelBlockId = process.env.LEELOO_TUNNEL_BLOCK_ID?.trim();
 
   if (!token) {
     return sendJson(response, 500, {
@@ -201,17 +221,23 @@ export default async function handler(request, response) {
   }
 
   try {
-    const personId = await createOrFindPerson({
+    const person = await createOrFindPerson({
       token,
       leadgentoolId,
-      connectedUserId,
       lead: validation.lead
     });
 
     await addProblemComment({
       token,
-      personId,
+      personId: person.personId,
       problem: validation.lead.problem
+    });
+
+    await subscribeToTunnelBlock({
+      token,
+      accountId: person.accountId,
+      tunnelId,
+      tunnelBlockId
     });
 
     return sendJson(response, 201, { ok: true });
