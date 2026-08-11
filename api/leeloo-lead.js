@@ -70,8 +70,14 @@ async function leelooRequest(path, { token, method = 'GET', body }) {
   return { ok: response.ok && payload.status !== 0, status: response.status, payload };
 }
 
-function getPersonId(payload) {
-  return payload?.data?.id || payload?.data?.person?.id || payload?.person?.id || '';
+function getCreatedPersonId(payload) {
+  // Leeloo returns both identifiers when a MANUAL communication channel is
+  // created: data.id is the channel ID and data.person_id is the CRM person ID.
+  return payload?.data?.person_id
+    || payload?.data?.person?.id
+    || payload?.person?.id
+    || payload?.data?.id
+    || '';
 }
 
 async function findPersonByPhone(token, phone) {
@@ -88,6 +94,10 @@ async function findPersonByPhone(token, phone) {
 }
 
 async function createOrFindPerson({ token, leadgentoolId, lead }) {
+  const existingPersonId = await findPersonByPhone(token, lead.phone);
+
+  if (existingPersonId) return existingPersonId;
+
   const personBody = {
     name: lead.name,
     phone: lead.phone,
@@ -98,15 +108,18 @@ async function createOrFindPerson({ token, leadgentoolId, lead }) {
     method: 'POST',
     body: personBody
   });
-  const createdPersonId = getPersonId(creation.payload);
+  const createdPersonId = getCreatedPersonId(creation.payload);
 
   if (creation.ok && createdPersonId) return createdPersonId;
 
-  const existingPersonId = await findPersonByPhone(token, lead.phone);
+  // A second lookup covers a concurrent request that created the person first.
+  const concurrentlyCreatedPersonId = await findPersonByPhone(token, lead.phone);
 
-  if (existingPersonId) return existingPersonId;
+  if (concurrentlyCreatedPersonId) return concurrentlyCreatedPersonId;
 
-  throw new Error('person_creation_failed');
+  const error = new Error('person_creation_failed');
+  error.upstreamStatus = creation.status;
+  throw error;
 }
 
 async function addProblemComment({ token, personId, problem }) {
@@ -125,7 +138,11 @@ async function addProblemComment({ token, personId, problem }) {
   let result = await request();
 
   if (!result.ok) result = await request();
-  if (!result.ok) throw new Error('comment_creation_failed');
+  if (!result.ok) {
+    const error = new Error('comment_creation_failed');
+    error.upstreamStatus = result.status;
+    throw error;
+  }
 }
 
 export default async function handler(request, response) {
@@ -168,7 +185,12 @@ export default async function handler(request, response) {
     });
 
     return sendJson(response, 201, { ok: true });
-  } catch {
+  } catch (error) {
+    console.error('Leeloo lead delivery failed', {
+      stage: error?.message || 'unknown_error',
+      upstreamStatus: error?.upstreamStatus || null
+    });
+
     return sendJson(response, 502, {
       ok: false,
       message: 'Не вдалося передати заявку. Спробуйте ще раз або зателефонуйте нам.'

@@ -31,8 +31,18 @@ test('creates a person and adds the problem as a comment', async () => {
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
 
+    if (url.includes('/people?')) {
+      return new Response(JSON.stringify({ status: 1, data: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     if (url.endsWith('/people')) {
-      return new Response(JSON.stringify({ status: 1, data: { id: 'person-1' } }), {
+      return new Response(JSON.stringify({
+        status: 1,
+        data: { id: 'channel-1', person_id: 'person-1' }
+      }), {
         status: 201,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -61,18 +71,65 @@ test('creates a person and adds the problem as a comment', async () => {
 
   assert.equal(response.statusCode, 201);
   assert.deepEqual(response.payload, { ok: true });
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
 
-  const personBody = JSON.parse(calls[0].options.body);
+  const personBody = JSON.parse(calls[1].options.body);
   assert.deepEqual(personBody, {
     name: 'Олександр',
     phone: '+380735437441',
     leadgentool_id: 'test-leadgentool'
   });
 
-  const commentBody = JSON.parse(calls[1].options.body);
+  const commentBody = JSON.parse(calls[2].options.body);
   assert.match(commentBody.comment, /Потрібна консультація щодо ВЛК/);
-  assert.equal(calls[1].options.method, 'PUT');
+  assert.equal(calls[2].options.method, 'PUT');
+  assert.match(calls[2].url, /\/people\/person-1\/add-comment$/);
+});
+
+test('reuses an existing person instead of creating a duplicate', async () => {
+  process.env.LEELOO_API_TOKEN = 'test-token';
+  process.env.LEELOO_LEADGENTOOL_ID = 'test-leadgentool';
+
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+
+    if (url.includes('/people?')) {
+      return new Response(JSON.stringify({
+        status: 1,
+        data: [{ id: 'existing-person', phone: '+380735437441' }]
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    return new Response(JSON.stringify({ status: 1, data: {} }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+
+  const response = createResponse();
+
+  try {
+    await handler({
+      method: 'POST',
+      body: {
+        name: 'Олександр',
+        phone: '073 543 74 41',
+        problem: 'Повторна заявка без дублювання картки.'
+      }
+    }, response);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(response.statusCode, 201);
+  assert.equal(calls.length, 2);
+  assert.equal(calls.some(call => call.url.endsWith('/people')), false);
+  assert.match(calls[1].url, /\/people\/existing-person\/add-comment$/);
 });
 
 test('rejects invalid form data before calling Leeloo', async () => {
