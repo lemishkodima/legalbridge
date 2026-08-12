@@ -6,7 +6,7 @@
   .stat-val { font-size: 32px; }
   .sit-grid, .why-grid { grid-template-columns: 1fr; gap: 16px; }
   .why { padding: 80px 0; }
-  .situations, .expert, .process, .faq-section, .form-section { padding: 80px 0; }
+  .situations, .expert, .process, .team, .faq-section, .form-section { padding: 80px 0; }
   .expert-grid { grid-template-columns: 1fr; gap: 40px; }
   .expert-photo { max-width: 300px; margin: 0 auto; }
   .steps { grid-template-columns: repeat(2, 1fr); gap: 32px 16px; }
@@ -24,6 +24,8 @@
   .hero-cta { flex-direction: column; align-items: stretch; }
   .btn-primary, .btn-ghost { justify-content: center; text-align: center; }
   .logo img { width: 150px; height: 48px; }
+  .team-grid { grid-template-columns: 1fr; gap: 44px; }
+  .team-photo { width: min(100%, 280px); }
 }
 
 @media (max-width: 900px) {
