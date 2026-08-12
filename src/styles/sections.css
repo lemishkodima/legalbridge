@@ -672,10 +672,19 @@ form.lead-form {
 .video-player.is-playing .video-control {
   background: rgba(8, 24, 45, 0.82);
   color: var(--yellow);
-  opacity: 0.34;
+  opacity: 0;
+  pointer-events: none;
 }
-.video-player.is-playing:hover .video-control,
-.video-player.is-playing .video-control:focus-visible { opacity: 1; }
+.video-player.is-playing .video-control:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .video-player.is-playing:hover .video-control {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 .video-player.is-playing .video-control-icon {
   width: 19px;
   height: 24px;
@@ -687,6 +696,62 @@ form.lead-form {
     transparent 36% 64%,
     currentColor 64% 100%
   );
+}
+.video-sound-control {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+  background: rgba(8, 24, 45, 0.82);
+  color: var(--yellow);
+  box-shadow: 0 8px 24px rgba(8, 24, 45, 0.32);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.video-sound-control:hover,
+.video-sound-control:focus-visible {
+  background: var(--yellow);
+  color: var(--bg);
+  transform: scale(1.06);
+}
+.video-sound-control:active { transform: scale(0.96); }
+.video-sound-icon {
+  position: relative;
+  width: 22px;
+  height: 20px;
+}
+.video-sound-icon::before {
+  content: '';
+  position: absolute;
+  inset: 2px 3px 2px 0;
+  background: currentColor;
+  clip-path: polygon(0 35%, 32% 35%, 72% 0, 72% 100%, 32% 65%, 0 65%);
+}
+.video-sound-icon::after {
+  content: '))';
+  position: absolute;
+  top: 1px;
+  right: -1px;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -3px;
+  line-height: 18px;
+}
+.video-player.is-muted .video-sound-icon::after {
+  content: '×';
+  top: 0;
+  right: -1px;
+  font-size: 18px;
+  letter-spacing: 0;
+  line-height: 20px;
 }
 .case-body { padding: 24px; }
 .case-tag {
