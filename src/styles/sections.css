@@ -636,7 +636,7 @@ form.lead-form {
 }
 .case-card:hover { transform: translateY(-4px); }
 .case-photo { aspect-ratio: 4/5; }
-.case-photo video { object-position: center top; }
+.case-photo video { object-position: center center; }
 .video-control {
   position: absolute;
   top: 50%;
