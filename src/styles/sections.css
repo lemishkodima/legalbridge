@@ -526,9 +526,25 @@ form.lead-form {
   align-items: flex-start;
   gap: 10px;
   color: var(--text-2);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   cursor: pointer;
+}
+.form-consent-documents {
+  margin-bottom: 16px;
+}
+.form-consent span { min-width: 0; }
+.form-consent a {
+  color: var(--yellow);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.form-consent a:hover { color: #E1BE6C; }
+.form-consent a:focus-visible,
+.form-consent input:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 4px;
 }
 .form-consent input {
   width: 18px;
