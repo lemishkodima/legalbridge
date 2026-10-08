@@ -814,14 +814,7 @@ form.lead-form {
 .documents-track { display: grid; grid-auto-columns: minmax(270px, 1fr); grid-auto-flow: column; gap: 20px; margin: 52px -32px 0; padding: 8px 32px 24px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-color: var(--yellow) var(--bg-3); scrollbar-width: thin; }
 .document-card { min-width: 0; overflow: hidden; background: var(--bg-3); border: 1px solid var(--line); scroll-snap-align: start; }
 .document-preview { height: 310px; position: relative; display: grid; place-items: center; overflow: hidden; background: radial-gradient(ellipse at 50% 10%, rgba(203,162,74,.16), transparent 60%), #0c1d33; }
-.document-paper { width: 70%; min-height: 245px; padding: 24px 22px; display: flex; flex-direction: column; gap: 11px; background: #e7e3d0; color: #1e2833; box-shadow: 0 14px 36px rgba(0,0,0,.35); transform: rotate(-2deg); }
-.document-overline { margin-bottom: 6px; color: #46515a; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
-.document-line { display: block; width: 100%; height: 5px; background: rgba(46,57,64,.18); }
-.document-line-short { width: 56%; }
-.document-line-mid { width: 78%; }
-.document-redaction { display: block; width: 67%; height: 12px; background: #29323a; }
-.document-redaction-small { width: 42%; }
-.document-highlight { display: block; margin: 3px -7px; padding: 9px 7px; background: rgba(203,162,74,.55); color: #172538; font-size: 10px; font-weight: 800; line-height: 1.3; }
+.document-page { display: block; width: 100%; height: 100%; object-fit: contain; }
 .document-lock { position: absolute; right: 12px; bottom: 12px; padding: 6px 9px; background: rgba(8,24,45,.92); color: var(--yellow); border: 1px solid rgba(203,162,74,.35); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .document-card-body { padding: 22px; }
 .document-card-body .case-tag { margin-bottom: 10px; }
