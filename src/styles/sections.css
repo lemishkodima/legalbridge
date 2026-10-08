@@ -93,6 +93,33 @@ h1.hero-title {
   padding-top: 48px;
   border-top: 1px solid var(--line);
 }
+
+/* Consultation value */
+.consultation-value { padding: 112px 0; }
+.consultation-value .sec-eyebrow { margin-bottom: 20px; }
+.consultation-value .sec-lead { margin-bottom: 36px; }
+.consultation-card {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: clamp(26px, 5vw, 56px);
+  background: linear-gradient(145deg, var(--bg-3), var(--bg-2));
+  border: 1px solid rgba(203, 162, 74, 0.5);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+}
+.consultation-card-heading { display: flex; align-items: center; gap: 18px; padding-bottom: 28px; border-bottom: 1px solid var(--line-2); }
+.consultation-card-mark { width: 48px; height: 48px; display: grid; place-items: center; flex: 0 0 auto; background: var(--yellow); color: var(--bg); font-weight: 900; letter-spacing: -0.08em; }
+.consultation-card-kicker { display: block; margin-bottom: 5px; color: var(--text-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+.consultation-card-heading h3 { font-size: clamp(19px, 3vw, 26px); text-transform: uppercase; }
+.consultation-price { margin-left: auto; color: var(--yellow); font-family: 'Montserrat', sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 900; white-space: nowrap; }
+.consultation-price small { font-size: 0.65em; }
+.consultation-includes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 28px; padding: 28px 0; list-style: none; }
+.consultation-includes li { position: relative; padding-left: 28px; color: var(--text-2); line-height: 1.45; }
+.consultation-includes li::before { content: '✓'; position: absolute; left: 0; color: var(--yellow); font-weight: 900; }
+.consultation-card-result { padding: 22px 24px; margin-bottom: 26px; background: rgba(8, 24, 45, 0.72); border-left: 3px solid var(--yellow); }
+.consultation-card-result strong { display: block; margin-bottom: 6px; color: var(--yellow); text-transform: uppercase; font-size: 12px; letter-spacing: 0.08em; }
+.consultation-card-result p { color: var(--text-2); line-height: 1.55; }
+.consultation-card .btn-primary { width: 100%; justify-content: center; }
+.consultation-compare { max-width: 850px; margin: 28px auto 0; padding-left: 20px; border-left: 2px solid var(--yellow); color: var(--text-2); font-size: 15px; line-height: 1.6; font-style: italic; }
 .stat-val {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
@@ -776,6 +803,34 @@ form.lead-form {
   line-height: 1.5;
 }
 .case-result strong { color: var(--yellow); font-weight: 700; }
+
+/* Client documents gallery */
+.documents-section { padding: 112px 0; overflow: hidden; }
+.documents-heading { display: flex; align-items: end; justify-content: space-between; gap: 32px; }
+.documents-heading .sec-lead { margin-bottom: 0; }
+.documents-controls { display: flex; gap: 10px; flex: 0 0 auto; padding-bottom: 5px; }
+.documents-arrow { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--line-2); background: var(--bg-3); color: var(--yellow); font: inherit; font-size: 24px; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.documents-arrow:hover { border-color: var(--yellow); background: var(--yellow); color: var(--bg); }
+.documents-track { display: grid; grid-auto-columns: minmax(270px, 1fr); grid-auto-flow: column; gap: 20px; margin: 52px -32px 0; padding: 8px 32px 24px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-color: var(--yellow) var(--bg-3); scrollbar-width: thin; }
+.document-card { min-width: 0; overflow: hidden; background: var(--bg-3); border: 1px solid var(--line); scroll-snap-align: start; }
+.document-preview { height: 310px; position: relative; display: grid; place-items: center; overflow: hidden; background: radial-gradient(ellipse at 50% 10%, rgba(203,162,74,.16), transparent 60%), #0c1d33; }
+.document-paper { width: 70%; min-height: 245px; padding: 24px 22px; display: flex; flex-direction: column; gap: 11px; background: #e7e3d0; color: #1e2833; box-shadow: 0 14px 36px rgba(0,0,0,.35); transform: rotate(-2deg); }
+.document-overline { margin-bottom: 6px; color: #46515a; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.document-line { display: block; width: 100%; height: 5px; background: rgba(46,57,64,.18); }
+.document-line-short { width: 56%; }
+.document-line-mid { width: 78%; }
+.document-redaction { display: block; width: 67%; height: 12px; background: #29323a; }
+.document-redaction-small { width: 42%; }
+.document-highlight { display: block; margin: 3px -7px; padding: 9px 7px; background: rgba(203,162,74,.55); color: #172538; font-size: 10px; font-weight: 800; line-height: 1.3; }
+.document-lock { position: absolute; right: 12px; bottom: 12px; padding: 6px 9px; background: rgba(8,24,45,.92); color: var(--yellow); border: 1px solid rgba(203,162,74,.35); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.document-card-body { padding: 22px; }
+.document-card-body .case-tag { margin-bottom: 10px; }
+.document-card-body h3 { margin-bottom: 9px; font-size: 17px; line-height: 1.25; text-transform: uppercase; }
+.document-card-body p { color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.document-review-image { height: 310px; display: grid; place-items: center; overflow: hidden; background: #f4f4f4; }
+.document-review-image img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: left top; }
+.documents-cta { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 20px; padding: 24px 28px; background: var(--bg-2); border: 1px solid var(--line); color: var(--text-2); }
+.documents-cta .btn-primary { padding: 16px 24px; }
 
 /* Team */
 .team { padding: 120px 0; }

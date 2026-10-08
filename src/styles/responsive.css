@@ -18,6 +18,8 @@
   .nav-phone { display: none; }
   .nav-btn { padding: 10px 16px; font-size: 13px; }
   .gb-inner { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .consultation-value, .documents-section { padding: 80px 0; }
+  .documents-heading { align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
@@ -26,6 +28,13 @@
   .logo img { width: 150px; height: 48px; }
   .team-grid { grid-template-columns: 1fr; gap: 44px; }
   .team-photo { width: min(100%, 280px); }
+  .consultation-includes { grid-template-columns: 1fr; gap: 14px; }
+  .consultation-card-heading { flex-wrap: wrap; }
+  .consultation-price { margin-left: 66px; }
+  .documents-heading { display: block; }
+  .documents-controls { margin-top: 22px; }
+  .documents-track { grid-auto-columns: minmax(82vw, 1fr); margin-left: -20px; margin-right: -20px; padding-left: 20px; padding-right: 20px; }
+  .documents-cta { align-items: stretch; flex-direction: column; }
 }
 
 @media (max-width: 900px) {
